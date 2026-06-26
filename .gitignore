@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Secrets — NEVER commit your API key
+.env
+*.env
+config_local.py
+
+# Outputs & logs
+outputs/session_log.jsonl
+
+# IDE
+.vscode/
+.idea/
+*.DS_Store
