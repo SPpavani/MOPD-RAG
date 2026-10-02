@@ -24,16 +24,19 @@ printed + logged as JSON lines (timestamp, query, teachers used, outputs, final 
 | Component | Role |
 |---|---|
 | `router.py` | Decides which teachers a query needs |
-| `rag.py` | Loads documents and retrieves context |
+| `rag.py` | Reads `.txt` / `.md` files, chunks them, and retrieves the top chunks with a **from-scratch TF-IDF scorer** (no external vector database) |
 | Teachers (`math`, `code`, `science`, `general`) | Each answers using its own specialist prompt plus the retrieved context |
 | `distiller.py` | Synthesises the teacher answers into one response |
 | `main.py` | Interactive CLI loop and session logging |
+
+If no documents are found, the teachers answer from general knowledge.
 
 ## Run
 
 ```bash
 pip install -r requirements.txt
 export ANTHROPIC_API_KEY="your-key"
+# put .txt / .md files in the docs folder set in config.py
 python main.py
 ```
 
@@ -46,5 +49,6 @@ The pipeline logic is in place. The repository layout is being cleaned up so tha
 ## Roadmap
 - [ ] Finish the `core/` and `teachers/` package layout
 - [ ] Add a small evaluation set comparing multi-teacher answers against a single-model baseline
+- [ ] Compare TF-IDF retrieval against embedding-based retrieval
 - [ ] Track latency and token cost per query
 - [ ] Add tests and a GitHub Actions workflow
