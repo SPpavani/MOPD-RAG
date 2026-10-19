@@ -32,3 +32,38 @@ def test_summarize_without_judge_has_no_judge_key():
 def test_summarize_empty():
     s = summarize([])
     assert s["queries"] == 0 and s["baseline"]["avg_tokens"] == 0
+
+
+# ---- deterministic answer checks ----
+from benchmark import check_answer, load_queries  # noqa: E402
+
+
+def test_check_answer_all_of_and_any_of():
+    spec = {"all_of": [r"7[, ]?006[, ]?652"]}
+    assert check_answer("It is 7,006,652.", spec) is True
+    assert check_answer("About 7 million.", spec) is False
+    assert check_answer("anything", {"query": "no check"}) is None
+    spec2 = {"all_of": ["density"], "any_of": ["hydrogen bond", "lattice"]}
+    assert check_answer("Ice has lower density because of its lattice", spec2) is True
+    assert check_answer("Ice has lower density.", spec2) is False
+
+
+def test_summarize_reports_accuracy_and_cost_when_present():
+    rows = [
+        {"baseline": {"latency_s": 1, "tokens": 10, "correct": False, "cost_usd": 0.001},
+         "mopd": {"latency_s": 2, "tokens": 40, "correct": True, "cost_usd": 0.004}, "winner": None},
+        {"baseline": {"latency_s": 1, "tokens": 10, "correct": True, "cost_usd": 0.001},
+         "mopd": {"latency_s": 2, "tokens": 40, "correct": True, "cost_usd": 0.004}, "winner": None},
+    ]
+    s = summarize(rows)
+    assert s["baseline"]["accuracy"] == "1/2" and s["mopd"]["accuracy"] == "2/2"
+    assert s["mopd"]["avg_cost_usd"] == 0.004
+
+
+def test_query_file_loads_and_every_check_is_valid_regex():
+    import re
+    queries = load_queries("eval/queries.json")
+    assert len(queries) >= 15
+    for q in queries:
+        for pattern in (q.get("all_of") or []) + (q.get("any_of") or []):
+            re.compile(pattern)
