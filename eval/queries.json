@@ -1,10 +1,142 @@
 [
-  "What is the derivative of x^3 * sin(x)?",
-  "Write a Python function that checks whether a string is a palindrome.",
-  "Why does ice float on water?",
-  "Explain what retrieval-augmented generation is and when to use it.",
-  "A train travels 180 km in 2.5 hours. What is its average speed in metres per second?",
-  "How does CRISPR edit DNA?",
-  "What is the difference between a process and a thread? Show a Python example.",
-  "What is the probability of getting at least one six in four rolls of a fair die?"
+ {
+  "query": "What is the derivative of x^3 * sin(x)?",
+  "all_of": [
+   "3\\s*x\\s*(\\^|\\*\\*)?\\s*2|3x\u00b2",
+   "cos"
+  ]
+ },
+ {
+  "query": "Write a Python function that checks whether a string is a palindrome.",
+  "all_of": [
+   "def\\s+\\w+"
+  ],
+  "any_of": [
+   "\\[::-1\\]",
+   "reversed\\(",
+   "\\bleft\\b",
+   "range\\("
+  ]
+ },
+ {
+  "query": "Why does ice float on water?",
+  "all_of": [
+   "densit"
+  ],
+  "any_of": [
+   "hydrogen bond",
+   "hexagonal|lattice|expand"
+  ]
+ },
+ {
+  "query": "Explain what retrieval-augmented generation is and when to use it.",
+  "all_of": [
+   "retriev",
+   "generat"
+  ]
+ },
+ {
+  "query": "A train travels 180 km in 2.5 hours. What is its average speed in metres per second?",
+  "all_of": [
+   "\\b20(\\.0+)?\\b"
+  ]
+ },
+ {
+  "query": "How does CRISPR edit DNA?",
+  "all_of": [
+   "cas-?9",
+   "guide|grna|sgrna|rna"
+  ]
+ },
+ {
+  "query": "What is the difference between a process and a thread? Show a Python example.",
+  "all_of": [
+   "memory",
+   "thread",
+   "process"
+  ],
+  "any_of": [
+   "shar"
+  ]
+ },
+ {
+  "query": "What is the probability of getting at least one six in four rolls of a fair die?",
+  "any_of": [
+   "671\\s*/\\s*1296",
+   "0\\.51[78]",
+   "51\\.[78]\\s*%"
+  ]
+ },
+ {
+  "query": "What is 1234 * 5678?",
+  "all_of": [
+   "7[, ]?006[, ]?652"
+  ]
+ },
+ {
+  "query": "What is 987 times 654?",
+  "all_of": [
+   "645[, ]?498"
+  ]
+ },
+ {
+  "query": "What is 17 * 23?",
+  "all_of": [
+   "\\b391\\b"
+  ]
+ },
+ {
+  "query": "What is the sum of the integers from 1 to 100?",
+  "all_of": [
+   "5[, ]?050"
+  ]
+ },
+ {
+  "query": "What is 15% of 240?",
+  "all_of": [
+   "\\b36(\\.0+)?\\b"
+  ]
+ },
+ {
+  "query": "What is the square root of 1764?",
+  "all_of": [
+   "\\b42\\b"
+  ]
+ },
+ {
+  "query": "How many seconds are in a week?",
+  "all_of": [
+   "604[, ]?800"
+  ]
+ },
+ {
+  "query": "What is 2 to the power of 20?",
+  "all_of": [
+   "1[, ]?048[, ]?576"
+  ]
+ },
+ {
+  "query": "A shirt costs $80 and is discounted by 35%. What is the sale price?",
+  "all_of": [
+   "\\$?\\s?52(\\.00)?\\b"
+  ]
+ },
+ {
+  "query": "What is the population standard deviation of 2, 4, 4, 4, 5, 5, 7, 9?",
+  "all_of": [
+   "\\b2(\\.0+)?\\b"
+  ]
+ },
+ {
+  "query": "How many hours are in 48 days?",
+  "all_of": [
+   "1[, ]?152"
+  ]
+ },
+ {
+  "query": "How many days are in 48 years, ignoring leap years?",
+  "all_of": [
+   "17[, ]?520"
+  ]
+ }
 ]

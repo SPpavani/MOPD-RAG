@@ -30,6 +30,27 @@ def parse_verdict(text: str) -> Optional[str]:
     return match.group(1) if match else None
 
 
+def load_queries(path) -> List[Dict]:
+    """eval/queries.json holds plain strings or {"query", "all_of", "any_of"} objects with regex checks."""
+    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    return [{"query": item} if isinstance(item, str) else dict(item) for item in raw]
+
+
+def check_answer(text: str, spec: Dict) -> Optional[bool]:
+    """Deterministic correctness: every `all_of` regex must match, and at least one `any_of` regex (if given).
+
+    Returns None when the query has no check. A regex check is strict and can reject a correct answer that is
+    phrased unexpectedly, so treat accuracy as a floor and read a few answers by hand.
+    """
+    all_of, any_of = spec.get("all_of") or [], spec.get("any_of") or []
+    if not all_of and not any_of:
+        return None
+    flags = re.IGNORECASE | re.DOTALL
+    if not all(re.search(p, text or "", flags) for p in all_of):
+        return False
+    return bool(any(re.search(p, text or "", flags) for p in any_of)) if any_of else True
+
+
 def summarize(rows: List[Dict]) -> Dict:
     out: Dict = {"queries": len(rows)}
     for mode in ("baseline", "mopd"):
@@ -39,6 +60,12 @@ def summarize(rows: List[Dict]) -> Dict:
             "avg_latency_s": round(sum(lat) / len(lat), 2) if lat else 0.0,
             "avg_tokens": round(sum(tok) / len(tok)) if tok else 0,
         }
+        checked = [r[mode]["correct"] for r in rows if r[mode].get("correct") is not None]
+        if checked:
+            out[mode]["accuracy"] = f"{sum(checked)}/{len(checked)}"
+        costs = [r[mode]["cost_usd"] for r in rows if r[mode].get("cost_usd") is not None]
+        if costs:
+            out[mode]["avg_cost_usd"] = round(sum(costs) / len(costs), 6)
     wins = Counter(r.get("winner") for r in rows if r.get("winner"))
     if wins:
         out["judge"] = {
@@ -67,6 +94,7 @@ def main() -> None:
     parser.add_argument("--queries", default="eval/queries.json")
     parser.add_argument("--judge", action="store_true")
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--no-tools", action="store_true", help="ablation: take the calculator away from the math teacher")
     args = parser.parse_args()
 
     import config
@@ -79,16 +107,22 @@ def main() -> None:
     if not config.ANTHROPIC_API_KEY:
         sys.exit("ANTHROPIC_API_KEY not set.")
 
-    queries = json.loads(Path(args.queries).read_text(encoding="utf-8"))
+    from core.cost import estimate_cost
+
+    queries = load_queries(args.queries)
     if args.limit:
         queries = queries[: args.limit]
 
     rag, router, distiller, teachers = RAGEngine(), QueryRouter(), StudentDistiller(), build_teachers()
+    if args.no_tools:
+        for teacher in teachers.values():
+            teacher.tools = []
     rag.load_documents()
     rng = random.Random(42)
 
     rows: List[Dict] = []
-    for query in queries:
+    for spec in queries:
+        query = spec["query"]
         context = rag.retrieve(query)
         start = time.perf_counter()
         base = teachers["general"].ask(query, context)
@@ -102,12 +136,17 @@ def main() -> None:
                 "answer": base.text,
                 "latency_s": round(base_latency, 2),
                 "tokens": base.input_tokens + base.output_tokens,
+                "cost_usd": estimate_cost(config.MODEL, base.input_tokens, base.output_tokens),
+                "correct": check_answer(base.text, spec),
             },
             "mopd": {
                 "answer": result.final_answer,
                 "latency_s": result.stats["total_latency_s"],
                 "tokens": result.stats["input_tokens"] + result.stats["output_tokens"],
                 "teachers": result.teachers_activated,
+                "cost_usd": result.stats.get("cost_usd"),
+                "tool_calls": result.stats.get("tool_calls", 0),
+                "correct": check_answer(result.final_answer, spec),
             },
             "winner": None,
         }
