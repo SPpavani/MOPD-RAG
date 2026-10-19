@@ -15,6 +15,7 @@ import sys
 from dataclasses import asdict
 
 import config
+from core.cache import ResponseCache
 from core.distiller import StudentDistiller
 from core.pipeline import PipelineResult, run_query
 from core.rag import RAGEngine
@@ -44,8 +45,17 @@ def print_result(result: PipelineResult) -> None:
         f"\n[{', '.join(result.teachers_activated)}] "
         f"{s['total_latency_s']}s | tokens in/out: {s['input_tokens']}/{s['output_tokens']}"
     )
+    cost = s.get("cost_usd")
+    extras = [f"cost ~${cost:.5f}" if cost is not None else "cost unknown for this model"]
+    if s.get("tool_calls"):
+        extras.append(f"{s['tool_calls']} calculator call(s)")
+    if s.get("cache_hit"):
+        extras.append("answered from cache")
+    print("[" + ", ".join(extras) + "]")
     for name, err in result.errors.items():
         print(f"[warning] {name} failed: {err}")
+    for warning in result.security_warnings:
+        print(f"[security] {warning}")
 
 
 def main() -> None:
@@ -65,11 +75,12 @@ def main() -> None:
     router = QueryRouter()
     distiller = StudentDistiller()
     teachers = build_teachers()
+    cache = ResponseCache()
     rag.load_documents()
 
     def handle(query: str) -> None:
         print(f"\n{'═' * 60}\n  QUERY: {query}\n{'═' * 60}")
-        result = run_query(query, rag, router, teachers, distiller)
+        result = run_query(query, rag, router, teachers, distiller, cache=cache)
         print_result(result)
         log_session(result)
         print(f"[Logged to {config.LOG_FILE}]")
