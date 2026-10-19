@@ -17,6 +17,10 @@ DOCS_DIR        = "data/documents"
 CHUNK_SIZE      = 400          # characters per chunk
 CHUNK_OVERLAP   = 80
 TOP_K_CHUNKS    = 3            # retrieved chunks per query
+# "bm25" (default) or "tfidf_legacy" (the original scorer, kept so results stay comparable)
+RETRIEVAL_SCORER = os.environ.get("MOPD_SCORER", "bm25")
+# a chunk is only used if it contains at least this share of the question's content words
+MIN_TERM_COVERAGE = 0.34
 
 # ─────────────────────────────────────────────
 #  Teacher settings
