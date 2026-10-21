@@ -16,3 +16,8 @@ outputs/
 .DS_Store
 .vscode/
 .idea/
+
+# test/lint artifacts
+.coverage
+.ruff_cache/
+htmlcov/
