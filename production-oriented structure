@@ -1,0 +1,57 @@
+MOPD-RAG/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                    # Expanded: tests + router eval + benchmark on PR
+├── core/
+│   ├── __init__.py
+│   ├── router.py                     # NEW: Hybrid router (keyword fast-path + LLM structured-output)
+│   ├── rag.py                        # UPDATED: Hybrid retrieval (dense + BM25/TF-IDF), retrieve-once
+│   ├── pipeline.py                   # UPDATED: Adaptive routing + confidence-aware flow
+│   ├── distiller.py                  # UPDATED: Confidence-weighted synthesis + selective skip
+│   └── tools.py                      # NEW: Calculator, code sandbox, simple fact tools
+├── teachers/
+│   ├── __init__.py
+│   ├── base.py                       # BaseTeacher with tool-calling support
+│   ├── math_teacher.py               # UPDATED: Uses calculator/sympy tool
+│   ├── code_teacher.py               # UPDATED: Uses sandboxed code execution
+│   ├── science_teacher.py
+│   └── general_teacher.py
+├── api/                              # NEW: Production surface
+│   ├── __init__.py
+│   ├── main.py                       # FastAPI app
+│   ├── routes.py                     # /query, /benchmark, /health, /metrics
+│   └── schemas.py                    # Pydantic request/response models
+├── eval/
+│   ├── queries.json                  # Expanded query set
+│   ├── gold.json                     # Optional human labels
+│   └── results/                      # Benchmark outputs
+├── data/
+│   ├── documents/                    # .txt / .md / .pdf now supported
+│   └── processed/
+├── scripts/
+│   ├── measure_routing.py            # NEW: Router accuracy + latency comparison
+│   ├── measure_tools.py              # NEW: Tool-using vs prompt-only comparison
+│   └── expand_eval.py
+├── tests/
+│   ├── test_router.py                # Keyword vs LLM router
+│   ├── test_tools.py
+│   ├── test_pipeline.py
+│   ├── test_distiller.py
+│   └── test_api.py
+├── observability/                    # NEW
+│   └── langfuse_config.py            # or phoenix setup
+├── outputs/
+│   └── benchmark.json
+├── .env.example
+├── .gitignore
+├── Dockerfile                        # NEW
+├── docker-compose.yml                # Optional
+├── Makefile                          # UPDATED: make serve, make bench, make eval-router
+├── config.py                         # UPDATED: new flags for hybrid, tools, confidence
+├── main.py                           # CLI still works
+├── benchmark.py                      # UPDATED: richer metrics (win rate, cost multiplier, latency)
+├── requirements.txt
+├── requirements-dev.txt
+├── requirements-llm.txt              # Optional heavier deps
+├── pytest.ini
+└── README.md                         # Rewritten to lead with measured results
